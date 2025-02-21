@@ -1,7 +1,11 @@
 const std = @import("std");
 
 const EXIT_COMMAND = "exit";
+const ECHO_COMMAND = "echo";
+
 const EXIT_COMMAND_LEN = EXIT_COMMAND.len;
+const ECHO_COMMAND_LEN = ECHO_COMMAND.len;
+
 
 pub fn main() !void {
     // Uncomment this block to pass the first stage
@@ -19,6 +23,14 @@ pub fn main() !void {
         if (command)|c| {
             if (std.mem.eql(u8,c, EXIT_COMMAND)) {
                 return;
+            }
+
+            if (std.mem.eql(u8,c, ECHO_COMMAND)) {
+                while (iter.next())|arg| {
+                    try stdout.print("{s} ", .{arg});
+                }
+                try stdout.print("\n",.{});
+                continue;
             }
         }
 

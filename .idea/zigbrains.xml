@@ -4,6 +4,7 @@
     <option name="zlsPath" value="C:\Zls\zls.exe" />
   </component>
   <component name="ZigProjectSettings">
-    <option name="toolchainPath" value="C:\Users\Yuriko\AppData\Local\Microsoft\WinGet\Links" />
+    <option name="explicitPathToStd" value="C:\zig\lib\std" />
+    <option name="toolchainPath" value="C:\zig" />
   </component>
 </project>

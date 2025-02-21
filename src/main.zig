@@ -1,5 +1,8 @@
 const std = @import("std");
 
+const EXIT_COMMAND = "exit";
+const EXIT_COMMAND_LEN = EXIT_COMMAND.len;
+
 pub fn main() !void {
     // Uncomment this block to pass the first stage
     const stdout = std.io.getStdOut().writer();
@@ -10,6 +13,14 @@ pub fn main() !void {
         try stdout.print("$ ", .{});
 
         const user_input = try stdin.readUntilDelimiter(&buffer, '\n');
+        var iter = std.mem.splitScalar(u8, user_input, ' ');
+        const command = iter.next();
+
+        if (command)|c| {
+            if (std.mem.eql(u8,c, EXIT_COMMAND)) {
+                return;
+            }
+        }
 
         try stdout.print("{s}: command not found\n", .{user_input});
     }

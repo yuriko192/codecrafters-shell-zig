@@ -1,5 +1,6 @@
 const std = @import("std");
 const Err = @import("../errors/errors.zig").Errors;
+const DebugPrint = @import("../errors/errors.zig").DebugPrint;
 
 pub const EXIT_COMMAND: *const [4]u8 = "exit";
 pub const ECHO_COMMAND: *const [4]u8 = "echo";
@@ -56,15 +57,15 @@ pub fn ExecuteBuiltInCommand(argv: [][]u8, argc: usize) !bool {
         ExecuteTypeCommand(argv, argc) catch |err| {
             switch (err) {
                 Err.INVALID => {
-                    std.debug.print("command {s} Invalid\n", .{TYPE_COMMAND});
+                    DebugPrint("command {s} Invalid\n", .{TYPE_COMMAND});
                     return true;
                 },
                 Err.EMPTY => {
-                    std.debug.print("command {s} Empty\n", .{TYPE_COMMAND});
+                    DebugPrint("command {s} Empty\n", .{TYPE_COMMAND});
                     return true;
                 },
                 else => {
-                    std.debug.print("command {s} ERROR: {}\n", .{ TYPE_COMMAND, err });
+                    DebugPrint("command {s} ERROR: {}\n", .{ TYPE_COMMAND, err });
                     return false;
                 },
             }

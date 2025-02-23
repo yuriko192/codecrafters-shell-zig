@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Err = @import("errors/errors.zig").Errors;
+const DebugPrint = @import("errors/errors.zig").DebugPrint;
 const Builtins = @import("builtins/builtins.zig");
 const Input = @import("input.zig");
 
@@ -22,11 +23,11 @@ pub fn main() !void {
 
         Input.GetUserInput(allocator, &raw_input, &argv, &argc) catch |err| switch (err) {
             Err.INVALID => {
-                std.debug.print("Invalid input!\n", .{});
+                DebugPrint("Invalid input!\n", .{});
                 continue;
             },
             else => {
-                std.debug.print("INPUT ERR: {}\n", .{err});
+                DebugPrint("INPUT ERR: {}\n", .{err});
                 return;
             },
         };

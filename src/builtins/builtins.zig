@@ -33,10 +33,9 @@ pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
 }
 
 pub fn ExecuteEchoCommand(argv: [][]u8, argc: usize) !void {
-    _ = argc;
     const stdout = std.io.getStdOut().writer();
 
-    for (argv) |argI| {
+    for (argv[1..argc]) |argI| {
         try stdout.print("{s} ", .{argI});
     }
     try stdout.print("\n", .{});

@@ -29,6 +29,15 @@ pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
         }
     }
 
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    const env_map = try arena.allocator().create(std.process.EnvMap);
+    env_map.* = try std.process.getEnvMap(arena.allocator());
+    defer env_map.deinit(); // technically unnecessary when using ArenaAllocator
+
+    const env_path = env_map.get("PATH") orelse "";
+
     try stdout.print("{s}: not found\n", .{command});
     return Err.INVALID;
 }

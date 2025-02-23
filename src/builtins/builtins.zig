@@ -1,5 +1,6 @@
 const std = @import("std");
 const Err = @import("../errors/errors.zig").Errors;
+const Utils = @import("../utils/utils.zig");
 const DebugPrint = @import("../errors/errors.zig").DebugPrint;
 
 pub const EXIT_COMMAND: *const [4]u8 = "exit";
@@ -15,12 +16,16 @@ pub const BUILTIN_COMMAND_LIST = [_]*const [4]u8{ EXIT_COMMAND, ECHO_COMMAND, TY
 pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
     const stdout = std.io.getStdOut().writer();
 
+
     if (argc < 2) {
         try stdout.print("Type Error: No command name\n", .{});
         return Err.EMPTY;
     }
 
     const command = argv[1];
+    errdefer{
+        stdout.print("{s}: not found\n", .{command}) catch {};
+    }
 
     for (BUILTIN_COMMAND_LIST) |builtin_command| {
         if (std.mem.eql(u8, command, builtin_command)) {
@@ -28,8 +33,21 @@ pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
             return;
         }
     }
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    var allocator = arena.allocator();
 
-    try stdout.print("{s}: not found\n", .{command});
+    const full_command_path = Utils.GetExternalExecutableFullPath(allocator,command) catch |err|{
+        DebugPrint("ExecuteTypeCommand: Utils.GetExternalExecutableFullPath: ERR: {}, command: {s}\n", .{ err, command });
+        return err;
+    };
+    defer allocator.free(full_command_path);
+
+    if (! std.mem.eql(u8, full_command_path, "")) {
+        try stdout.print("{s} is {s}\n", .{ command, full_command_path });
+        return;
+    }
+
     return Err.INVALID;
 }
 
@@ -55,19 +73,11 @@ pub fn ExecuteBuiltInCommand(argv: [][]u8, argc: usize) !bool {
 
     if (std.mem.eql(u8, c, TYPE_COMMAND)) {
         ExecuteTypeCommand(argv, argc) catch |err| {
+            DebugPrint("ExecuteBuiltInCommand: ExecuteTypeCommand: ERR: {}\n", .{err});
             switch (err) {
-                Err.INVALID => {
-                    DebugPrint("command {s} Invalid\n", .{TYPE_COMMAND});
-                    return true;
-                },
-                Err.EMPTY => {
-                    DebugPrint("command {s} Empty\n", .{TYPE_COMMAND});
-                    return true;
-                },
-                else => {
-                    DebugPrint("command {s} ERROR: {}\n", .{ TYPE_COMMAND, err });
-                    return false;
-                },
+                Err.INVALID => return true,
+                Err.EMPTY => return true,
+                else => return false,
             }
         };
         return true;

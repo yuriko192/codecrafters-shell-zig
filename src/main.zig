@@ -3,6 +3,7 @@ const std = @import("std");
 const Err = @import("errors/errors.zig").Errors;
 const DebugPrint = @import("errors/errors.zig").DebugPrint;
 const Builtins = @import("builtins/builtins.zig");
+const utils = @import("utils/utils.zig");
 const Input = @import("input.zig");
 
 pub fn main() !void {
@@ -38,6 +39,11 @@ pub fn main() !void {
         };
 
         if (is_valid_builtin_command) {
+            continue;
+        }
+
+        const is_valid_external_command = utils.ExecuteExternalCommand(allocator, argv, argc);
+        if (is_valid_external_command) {
             continue;
         }
 

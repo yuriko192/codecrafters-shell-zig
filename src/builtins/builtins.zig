@@ -16,14 +16,13 @@ pub const BUILTIN_COMMAND_LIST = [_]*const [4]u8{ EXIT_COMMAND, ECHO_COMMAND, TY
 pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
     const stdout = std.io.getStdOut().writer();
 
-
     if (argc < 2) {
         try stdout.print("Type Error: No command name\n", .{});
         return Err.EMPTY;
     }
 
     const command = argv[1];
-    errdefer{
+    errdefer {
         stdout.print("{s}: not found\n", .{command}) catch {};
     }
 
@@ -37,13 +36,13 @@ pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
     defer arena.deinit();
     var allocator = arena.allocator();
 
-    const full_command_path = Utils.GetExternalExecutableFullPath(allocator,command) catch |err|{
+    const full_command_path = Utils.GetExternalExecutableFullPath(allocator, command) catch |err| {
         DebugPrint("ExecuteTypeCommand: Utils.GetExternalExecutableFullPath: ERR: {}, command: {s}\n", .{ err, command });
         return err;
     };
     defer allocator.free(full_command_path);
 
-    if (! std.mem.eql(u8, full_command_path, "")) {
+    if (!std.mem.eql(u8, full_command_path, "")) {
         try stdout.print("{s} is {s}\n", .{ command, full_command_path });
         return;
     }
@@ -62,6 +61,7 @@ pub fn ExecuteEchoCommand(argv: [][]u8, argc: usize) !void {
 
 pub fn ExecuteBuiltInCommand(argv: [][]u8, argc: usize) !bool {
     const c = argv[0];
+    // try std.io.getStdOut().writer().print("C: {s}\n", .{c});
     if (std.mem.eql(u8, c, EXIT_COMMAND)) {
         return Err.EXIT;
     }

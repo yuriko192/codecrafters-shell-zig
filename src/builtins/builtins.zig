@@ -3,15 +3,17 @@ const Err = @import("../errors/errors.zig").Errors;
 const Utils = @import("../utils/utils.zig");
 const DebugPrint = @import("../errors/errors.zig").DebugPrint;
 
-pub const EXIT_COMMAND: *const [4]u8 = "exit";
-pub const ECHO_COMMAND: *const [4]u8 = "echo";
-pub const TYPE_COMMAND: *const [4]u8 = "type";
+pub const EXIT_COMMAND = "exit";
+pub const ECHO_COMMAND = "echo";
+pub const TYPE_COMMAND = "type";
+pub const PWD_COMMAND = "pwd";
 
 pub const EXIT_COMMAND_LEN = EXIT_COMMAND.len;
 pub const ECHO_COMMAND_LEN = ECHO_COMMAND.len;
 pub const TYPE_COMMAND_LEN = TYPE_COMMAND.len;
+pub const PWD_COMMAND_LEN = PWD_COMMAND.len;
 
-pub const BUILTIN_COMMAND_LIST = [_]*const [4]u8{ EXIT_COMMAND, ECHO_COMMAND, TYPE_COMMAND };
+pub const BUILTIN_COMMAND_LIST = [_][]const u8{ EXIT_COMMAND, ECHO_COMMAND, TYPE_COMMAND, PWD_COMMAND };
 
 pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
     const stdout = std.io.getStdOut().writer();
@@ -59,15 +61,33 @@ pub fn ExecuteEchoCommand(argv: [][]u8, argc: usize) !void {
     try stdout.print("\n", .{});
 }
 
+pub fn ExecutePwdCommand(_: [][]u8, _: usize) !void {
+    const stdout = std.io.getStdOut().writer();
+
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const curr_working_dir = try std.fs.cwd().realpathAlloc(allocator, ".");
+    defer allocator.free(curr_working_dir);
+
+    try stdout.print("{s}\n", .{curr_working_dir});
+}
+
 pub fn ExecuteBuiltInCommand(argv: [][]u8, argc: usize) !bool {
     const c = argv[0];
-    // try std.io.getStdOut().writer().print("C: {s}\n", .{c});
+
     if (std.mem.eql(u8, c, EXIT_COMMAND)) {
         return Err.EXIT;
     }
 
     if (std.mem.eql(u8, c, ECHO_COMMAND)) {
         try ExecuteEchoCommand(argv, argc);
+        return true;
+    }
+
+    if (std.mem.eql(u8, c, PWD_COMMAND)) {
+        try ExecutePwdCommand(argv, argc);
         return true;
     }
 

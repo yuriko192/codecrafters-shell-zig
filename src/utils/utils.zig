@@ -67,10 +67,15 @@ pub fn ExecuteExternalCommand(allocator: std.mem.Allocator, argv: [][]u8, argc: 
         return false;
     }
 
-    argv[0] = allocator.dupe(u8, ExecutablePath) catch |err| {
-        DebugPrint("ExecuteExternalCommand: allocator.dupe: ERR: {}, ExecutablePath: {s}\n", .{ err, ExecutablePath });
-        return false;
-    };
+    // // make sure the executed child is the same as the one found
+    // var childArgv = allocator.alloc([]u8, argc) catch {
+    //     return false;
+    // };
+    // childArgv = allocator.dupe([]u8, argv[0..argc]) catch |err| {
+    //     DebugPrint("ExecuteExternalCommand: allocator.dupe: ERR: {}, ExecutablePath: {s}\n", .{ err, ExecutablePath });
+    //     return false;
+    // };
+    // childArgv[0] = ExecutablePath;
 
     var child = std.process.Child.init(argv[0..argc], allocator);
     _ = child.spawnAndWait() catch |err| {

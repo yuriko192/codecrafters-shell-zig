@@ -7,13 +7,15 @@ pub const EXIT_COMMAND = "exit";
 pub const ECHO_COMMAND = "echo";
 pub const TYPE_COMMAND = "type";
 pub const PWD_COMMAND = "pwd";
+pub const CD_COMMAND = "cd";
 
 pub const EXIT_COMMAND_LEN = EXIT_COMMAND.len;
 pub const ECHO_COMMAND_LEN = ECHO_COMMAND.len;
 pub const TYPE_COMMAND_LEN = TYPE_COMMAND.len;
 pub const PWD_COMMAND_LEN = PWD_COMMAND.len;
+pub const CD_COMMAND_LEN = CD_COMMAND.len;
 
-pub const BUILTIN_COMMAND_LIST = [_][]const u8{ EXIT_COMMAND, ECHO_COMMAND, TYPE_COMMAND, PWD_COMMAND };
+pub const BUILTIN_COMMAND_LIST = [_][]const u8{ EXIT_COMMAND, ECHO_COMMAND, TYPE_COMMAND, PWD_COMMAND, CD_COMMAND };
 
 pub fn ExecuteTypeCommand(argv: [][]u8, argc: usize) !void {
     const stdout = std.io.getStdOut().writer();
@@ -74,6 +76,24 @@ pub fn ExecutePwdCommand(_: [][]u8, _: usize) !void {
     try stdout.print("{s}\n", .{curr_working_dir});
 }
 
+pub fn ExecuteCdCommand(argv: [][]u8, argc: usize) !void {
+    if (argc < 2) {
+        return;
+    }
+    const stdout = std.io.getStdOut().writer();
+
+    const newDir = argv[1];
+    var dir = std.fs.cwd().openDir(newDir, .{}) catch |err| {
+        DebugPrint("ExecuteCdCommand: std.fs.cwd().openDir: ERR: {}, newDir: {s}\n", .{ err, newDir });
+
+        try stdout.print("cd: {s}: No such file or directory\n", .{newDir});
+        return;
+    };
+    defer dir.close();
+
+    try dir.setAsCwd();
+}
+
 pub fn ExecuteBuiltInCommand(argv: [][]u8, argc: usize) !bool {
     const c = argv[0];
 
@@ -88,6 +108,11 @@ pub fn ExecuteBuiltInCommand(argv: [][]u8, argc: usize) !bool {
 
     if (std.mem.eql(u8, c, PWD_COMMAND)) {
         try ExecutePwdCommand(argv, argc);
+        return true;
+    }
+
+    if (std.mem.eql(u8, c, CD_COMMAND)) {
+        try ExecuteCdCommand(argv, argc);
         return true;
     }
 
